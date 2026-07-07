@@ -1,68 +1,118 @@
-# CommitCounter - IntelliJ Platform Plugin
+# 📊 CommitCounter - IntelliJ Platform Plugin 🚀
 
-CommitCounter, geliştiricilerin günlük GitHub commit sayılarını IDE durum çubuğunda (StatusBar) anlık ve şık bir şekilde takip etmelerini sağlayan modern bir IntelliJ platform eklentisidir. Clean Architecture (Temiz Mimari) prensiplerine ve SOLID standartlarına uygun olarak Kotlin dilinde geliştirilmiştir.
+[![Platform](https://img.shields.io/badge/Platform-IntelliJ_IDEA_/_Android_Studio-blue.svg?style=flat-square&logo=intellij-idea)]()
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-orange.svg?style=flat-square&logo=kotlin)]()
+[![Gradle](https://img.shields.io/badge/Gradle-8.x-green.svg?style=flat-square&logo=gradle)]()
+[![Clean Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture-lightgrey.svg?style=flat-square)]()
 
----
-
-## ✨ Özellikler
-
-- 🟢 **Durum Çubuğu Entegrasyonu (StatusBarWidget):** IDE'nin sağ alt köşesinde eklentinin durumunu canlı olarak gösterir:
-  - Giriş yapılmadıysa: `GitHub: Click to Login`
-  - Veri güncellenirken: `GitHub: Fetching...`
-  - Giriş yapıldıysa: `Commits Today: [Sayı]`
-  - Hata durumunda: `GitHub: Error`
-- 🔑 **GitHub OAuth Device Flow:** Tarayıcı üzerinden güvenli ve şifresiz giriş yapma imkanı. Eklenti, otomatik olarak doğrulama kodunu panoya kopyalar ve tarayıcıyı açar.
-- 🔒 **Güvenli Veri Saklama (PasswordSafe):** Kullanıcının GitHub OAuth Access Token'ı JetBrains'in yerleşik güvenli şifre kasası `PasswordSafe` (CredentialStore) API'si kullanılarak şifrelenip saklanır.
-- 🕒 **Akıllı Senkronizasyon (Scheduler):** `ScheduledExecutorService` ile her 15 dakikada bir otomatik senkronizasyon yaparak commit sayılarını arka planda günceller.
-- ⚡ **Asenkron İşlemler:** Tüm ağ istekleri ve dosya yazma/okuma işlemleri UI thread'ini kilitlemeyecek şekilde arka plan thread'lerinde (Background Workers) çalışır.
-- 🖱️ **Etkileşimli Menü:** Durum çubuğuna tıklandığında açılan menü üzerinden manuel yenileme (Refresh), güvenli çıkış yapma (Logout) ya da işlemi iptal etme seçenekleri sunar.
+An elegant, robust, and highly functional **IntelliJ Platform Plugin** designed to keep developers motivated by displaying their real-time daily GitHub commit counts directly in the IDE's **Status Bar** (StatusBarWidget). Built using strict **Clean Architecture** principles, **SOLID design patterns**, and JetBrains' modern guidelines. 🌟
 
 ---
 
-## 🏗️ Mimari Yapı (Clean Architecture)
+## 🎨 Visual Preview & User Interface States
 
-Proje, Clean Architecture prensiplerine sadık kalınarak üç temel katmana ayrılmıştır:
+The status bar widget dynamically changes its state and text depending on the authentication and network conditions:
+
+| State | Status Bar Representation | Action on Click |
+| :--- | :--- | :--- |
+| **Logged Out** 🚪 | `GitHub: Click to Login` | Triggers OAuth Device Flow 🔑 |
+| **Synchronizing** 🔄 | `GitHub: Fetching...` | Shows fetching indicator |
+| **Authenticated** ✅ | `Commits Today: [Count]` | Opens Interactive Actions Menu ⚙️ |
+| **Error / Offline** ⚠️ | `GitHub: Error` | Triggers re-authentication flow |
+
+---
+
+## 🚀 Key Features
+
+* 📍 **Native Status Bar Integration:** Sits perfectly at the bottom-right corner of your IDE alongside other key indicators.
+* 🔑 **Secure GitHub OAuth Device Flow:** Sign in securely without pasting raw passwords or personal access tokens. Authenticates seamlessly via browser with auto-copy code to clipboard.
+* 🔒 **PasswordSafe Secure Storage:** Tokens are encrypted and stored safely using JetBrains' built-in `PasswordSafe` and `CredentialAttributes` APIs.
+* 🕒 **Automatic Background Sync:** Checks for updates every 15 minutes utilizing `ScheduledExecutorService` so your count is always accurate.
+* ⚡ **Zero-Lag UI Execution:** All network calls, JSON processing, and preference operations are offloaded to pool-threads, ensuring the IDE main thread remains smooth and responsive.
+* 🛠️ **Quick Action Menu:** Direct refresh, logout, and cancellation controls available with a single click.
+
+---
+
+## 🏗️ Architectural Blueprint (Clean Architecture)
+
+The plugin code is divided into decoupled, highly cohesive, and testable modules:
 
 ```
 src/main/kotlin/com/vahitkeskin/commitcounter/
-├── data/
-│   └── repository/
-│       ├── GitHubRepository.kt       # GitHub API istekleri (Device Flow OAuth & Search API)
-│       └── PasswordSafeStorage.kt    # Token ve kullanıcı verilerinin güvenli saklanması
-├── domain/
-│   ├── model/
-│   │   └── CommitState.kt            # Eklentinin UI durum modelleri (LoggedOut, Fetching, vb.)
-│   └── usecase/
-│       └── CommitCounterService.kt   # Durum yönetimi ve arka plan zamanlayıcısı (App Service)
-└── presentation/
-    └── widget/
-        ├── CommitCounterWidget.kt    # Durum çubuğu widget arayüzü ve olay yönetimi
-        ├── CommitCounterWidgetFactory.kt # Widget'ın IntelliJ platformuna kayıt fabrikası
-        └── VerificationDialog.kt     # OAuth cihaz doğrulama kodunu gösteren diyalog
+├── 📂 data/
+│   └── 📂 repository/
+│       ├── 📄 GitHubRepository.kt       # Communicates with GitHub API (Device Auth & Commit Search)
+│       └── 📄 PasswordSafeStorage.kt    # Secure credential management using IDE APIs
+├── 📂 domain/
+│   ├── 📂 model/
+│   │   └── 📄 CommitState.kt            # Sealed UI state representation
+│   └── 📂 usecase/
+│       └── 📄 CommitCounterService.kt   # Central business controller, Scheduler & State manager
+└── 📂 presentation/
+    └── 📂 widget/
+        ├── 📄 CommitCounterWidget.kt    # Status Bar rendering & user click handling
+        ├── 📄 CommitCounterWidgetFactory.kt # System registration for the StatusBarWidget
+        └── 📄 VerificationDialog.kt     # Custom IDE window showing OAuth instructions
 ```
 
 ---
 
-## 🛠️ Kurulum ve Çalıştırma
+## 🛠️ Step-by-Step Installation & Setup
 
-### Gereksinimler
-- **JDK:** Version 21
-- **Gradle:** Sürüm uyumluluğu proje içinde otomatik yapılandırılmıştır (`gradlew`).
+### 📋 Prerequisites
+* **Java Development Kit (JDK):** Version 21 ☕
+* **IntelliJ Platform Gradle Plugin:** Version 2.5.0 (Targeting IntelliJ IDEA 2025.1+) 🛠️
 
-### 1. Klonlama ve Çalıştırma
-Projeyi klonladıktan sonra terminalden aşağıdaki komutla test ortamını (sandbox IDE) başlatabilirsiniz:
+### 🏁 Running Locally
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/vahitkeskin/CommitCounter.git
+   cd CommitCounter
+   ```
+2. Build the plugin and test it inside a sandboxed IDE instance:
+   ```bash
+   ./gradlew runIde
+   ```
+
+### 📦 Building the Plugin Package
+To package the plugin as a distributable `.zip` archive for local manual installation:
 ```bash
-./gradlew runIde
+./gradlew buildPlugin
 ```
-
-### 2. GitHub OAuth Yapılandırması
-Eklentinin çalışabilmesi için bir **GitHub OAuth App** tanımlanmış olmalıdır:
-1. GitHub hesabınızda **Settings > Developer Settings > OAuth Apps** menüsüne gidin.
-2. Yeni bir uygulama oluşturun (Device Flow desteği aktif olmalıdır).
-3. Uygulamanın **Client ID** değerini [GitHubRepository.kt](src/main/kotlin/com/vahitkeskin/commitcounter/data/repository/GitHubRepository.kt) dosyasındaki `CLIENT_ID` sabiti ile değiştirin.
+The resulting archive will be created in the `build/distributions/` directory.
 
 ---
 
-## ⚙️ Lisans ve Katkıda Bulunma
+## 🔑 GitHub OAuth Configuration
 
-Bu proje öğrenme ve geliştirme amaçlı açık kaynaklı olarak paylaşılmıştır. Her türlü hata bildirimi ve özellik önerisi için Pull Request gönderebilir veya Issue açabilirsiniz.
+The plugin uses **GitHub OAuth Device Flow**. To configure your own application client credentials:
+
+1. Visit [GitHub Developer Settings](https://github.com/settings/developers) and click **New OAuth App**.
+2. Set the application name and homepages. Ensure **Device Flow** authorization support is enabled.
+3. Copy the generated **Client ID**.
+4. Paste your client ID inside the `CLIENT_ID` constant within [GitHubRepository.kt](src/main/kotlin/com/vahitkeskin/commitcounter/data/repository/GitHubRepository.kt):
+   ```kotlin
+   private const val CLIENT_ID = "YOUR_CLIENT_ID"
+   ```
+
+---
+
+## 💡 How It Works under the Hood
+
+1. **Authentication Flow:**
+   - The user clicks on the status bar.
+   - The plugin sends a request to `https://github.com/login/device/code` to retrieve verification information.
+   - The user code is automatically copied to the clipboard, the default browser opens `https://github.com/login/device`, and an instruction dialog is shown.
+   - The plugin polls the authorization status endpoint in a background worker.
+   - Once verified, the token is safely stored.
+2. **Commit Searching:**
+   - The plugin fetches commits utilizing the GitHub Search Commits API:
+     `GET https://api.github.com/search/commits?q=author:{username}+committer-date:{today}`
+   - The count is parsed from the JSON payload and the status bar is repainted.
+
+---
+
+## 📄 License & Contribution
+
+- This project is open-source. Pull Requests and bug reports are highly welcome! 💖
+- Feel free to open an issue if you encounter any bugs or would like to request new features. 🛠️
