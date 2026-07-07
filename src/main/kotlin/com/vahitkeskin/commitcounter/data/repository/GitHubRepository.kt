@@ -11,6 +11,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object GitHubRepository {
+    private val logger = com.intellij.openapi.diagnostic.Logger.getInstance(GitHubRepository::class.java)
+
     // Note: To use the plugin, register a GitHub OAuth App with Device Flow enabled and put the Client ID here.
     private const val CLIENT_ID = "Ov23li8Z1n2wZ1Gz1e7G" 
 
@@ -58,9 +60,11 @@ object GitHubRepository {
                     interval = json.get("interval")?.asInt ?: 5,
                     expiresIn = json.get("expires_in").asInt
                 )
+            } else {
+                logger.warn("GitHub requestDeviceCode failed: status ${response.statusCode()}, body: ${response.body()}")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error("Error requesting device code", e)
         }
         return null
     }
@@ -87,9 +91,11 @@ object GitHubRepository {
                 val accessToken = json.get("access_token")?.asString
                 val error = json.get("error")?.asString
                 return PollResult(accessToken, error)
+            } else {
+                logger.warn("GitHub pollAccessToken failed: status ${response.statusCode()}, body: ${response.body()}")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error("Error polling access token", e)
         }
         return null
     }
@@ -108,24 +114,24 @@ object GitHubRepository {
             if (response.statusCode() == 200) {
                 val json = gson.fromJson(response.body(), JsonObject::class.java)
                 return json.get("login").asString
+            } else {
+                logger.warn("GitHub fetchUsername failed: status ${response.statusCode()}, body: ${response.body()}")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error("Error fetching username", e)
         }
         return null
     }
 
     fun fetchCommitsToday(token: String, username: String): Int? {
         val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-        // Query author and committer date:
-        // https://api.github.com/search/commits?q=author:{username}+committer-date:{YYYY-MM-DD}
         val query = "author:$username committer-date:$todayStr"
         val encodedQuery = java.net.URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8)
         
         val request = HttpRequest.newBuilder()
             .uri(URI.create("https://api.github.com/search/commits?q=$encodedQuery"))
             .header("Authorization", "Bearer $token")
-            .header("Accept", "application/vnd.github.cloak-preview+json") // Use preview header for commits search API
+            .header("Accept", "application/vnd.github.cloak-preview+json")
             .header("User-Agent", "CommitCounter-IntelliJ-Plugin")
             .GET()
             .build()
@@ -136,10 +142,10 @@ object GitHubRepository {
                 val json = gson.fromJson(response.body(), JsonObject::class.java)
                 return json.get("total_count").asInt
             } else {
-                System.err.println("GitHub search commits failed: ${response.statusCode()} - ${response.body()}")
+                logger.warn("GitHub fetchCommitsToday failed: status ${response.statusCode()}, body: ${response.body()}")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error("Error fetching daily commits", e)
         }
         return null
     }
