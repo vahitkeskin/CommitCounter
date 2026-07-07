@@ -10,6 +10,7 @@ import com.intellij.openapi.wm.StatusBarWidget.TextPresentation
 import com.intellij.util.Consumer
 import com.vahitkeskin.commitcounter.domain.model.CommitState
 import com.vahitkeskin.commitcounter.domain.usecase.CommitCounterService
+import com.vahitkeskin.commitcounter.presentation.CommitCounterBundle
 import java.awt.event.MouseEvent
 
 class CommitCounterWidget(private val project: Project) : StatusBarWidget, TextPresentation {
@@ -30,10 +31,10 @@ class CommitCounterWidget(private val project: Project) : StatusBarWidget, TextP
 
     override fun getTooltipText(): String {
         return when (val s = service.state) {
-            is CommitState.LoggedIn -> "GitHub: Logged in as ${s.username}. Click for options."
-            is CommitState.LoggedOut -> "GitHub: Not logged in. Click to login."
-            is CommitState.Fetching -> "GitHub: Synchronizing commits..."
-            is CommitState.Error -> "GitHub Error: ${s.message}. Click to retry."
+            is CommitState.LoggedIn -> CommitCounterBundle.message("widget.tooltip.loggedin", s.username)
+            is CommitState.LoggedOut -> CommitCounterBundle.message("widget.tooltip.login")
+            is CommitState.Fetching -> CommitCounterBundle.message("widget.tooltip.fetching")
+            is CommitState.Error -> CommitCounterBundle.message("widget.tooltip.error", s.message)
         }
     }
 
@@ -49,14 +50,17 @@ class CommitCounterWidget(private val project: Project) : StatusBarWidget, TextP
     }
 
     private fun showWidgetMenu(event: MouseEvent) {
-        val options = listOf("Yenile (Refresh)", "Çıkış Yap (Logout)", "İptal")
+        val refreshLabel = CommitCounterBundle.message("menu.refresh")
+        val logoutLabel = CommitCounterBundle.message("menu.logout")
+        val cancelLabel = "Cancel"
+        val options = listOf(refreshLabel, logoutLabel, cancelLabel)
         val popup = JBPopupFactory.getInstance().createListPopup(
             object : BaseListPopupStep<String>("GitHub Commit Counter", options) {
                 override fun onChosen(selectedValue: String?, finalChoice: Boolean): PopupStep<*>? {
                     if (finalChoice && selectedValue != null) {
                         when (selectedValue) {
-                            "Yenile (Refresh)" -> service.manualRefresh()
-                            "Çıkış Yap (Logout)" -> service.logout()
+                            refreshLabel -> service.manualRefresh()
+                            logoutLabel -> service.logout()
                         }
                     }
                     return PopupStep.FINAL_CHOICE
@@ -68,10 +72,10 @@ class CommitCounterWidget(private val project: Project) : StatusBarWidget, TextP
 
     override fun getText(): String {
         return when (val s = service.state) {
-            is CommitState.LoggedOut -> "GitHub: Click to Login"
-            is CommitState.Fetching -> "GitHub: Fetching..."
-            is CommitState.LoggedIn -> "Commits Today: ${s.commitsToday}"
-            is CommitState.Error -> "GitHub: Error"
+            is CommitState.LoggedOut -> CommitCounterBundle.message("widget.click.to.login")
+            is CommitState.Fetching -> CommitCounterBundle.message("widget.fetching")
+            is CommitState.LoggedIn -> CommitCounterBundle.message("widget.commits.today", s.commitsToday)
+            is CommitState.Error -> CommitCounterBundle.message("widget.error")
         }
     }
 
