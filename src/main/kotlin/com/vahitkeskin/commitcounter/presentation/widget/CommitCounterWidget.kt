@@ -63,7 +63,7 @@ class CommitCounterWidget(private val project: Project) : StatusBarWidget, TextP
                 }
             }
         )
-        popup.showUnderneathof(event.component)
+        popup.showUnderneathOf(event.component)
     }
 
     override fun getText(): String {
