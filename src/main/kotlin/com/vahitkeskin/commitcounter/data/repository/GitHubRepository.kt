@@ -14,7 +14,7 @@ object GitHubRepository {
     private val logger = com.intellij.openapi.diagnostic.Logger.getInstance(GitHubRepository::class.java)
 
     // Note: To use the plugin, register a GitHub OAuth App with Device Flow enabled and put the Client ID here.
-    private const val CLIENT_ID = "Ov23li8Z1n2wZ1Gz1e7G" 
+    private const val CLIENT_ID = "Ov23li4csqHMec32XpDI"
 
     private val httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(10))
@@ -124,28 +124,57 @@ object GitHubRepository {
     }
 
     fun fetchCommitsToday(token: String, username: String): Int? {
-        val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-        val query = "author:$username committer-date:$todayStr"
-        val encodedQuery = java.net.URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8)
-        
+        val zoneId = java.time.ZoneId.systemDefault()
+        val now = java.time.ZonedDateTime.now(zoneId)
+        val todayStart = now.with(java.time.LocalTime.MIN)
+        val todayEnd = now.with(java.time.LocalTime.MAX)
+        val formatter = java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
+        val fromStr = todayStart.format(formatter)
+        val toStr = todayEnd.format(formatter)
+
+        val graphQLQuery = "query(\$username: String!, \$from: DateTime!, \$to: DateTime!) { " +
+                "user(login: \$username) { " +
+                "contributionsCollection(from: \$from, to: \$to) { " +
+                "contributionCalendar { " +
+                "totalContributions " +
+                "} " +
+                "} " +
+                "} " +
+                "}"
+
+        val requestBodyMap = mapOf(
+            "query" to graphQLQuery,
+            "variables" to mapOf(
+                "username" to username,
+                "from" to fromStr,
+                "to" to toStr
+            )
+        )
+        val requestBody = gson.toJson(requestBodyMap)
+
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("https://api.github.com/search/commits?q=$encodedQuery"))
+            .uri(URI.create("https://api.github.com/graphql"))
             .header("Authorization", "Bearer $token")
-            .header("Accept", "application/vnd.github.cloak-preview+json")
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
             .header("User-Agent", "CommitCounter-IntelliJ-Plugin")
-            .GET()
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build()
 
         try {
             val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
             if (response.statusCode() == 200) {
                 val json = gson.fromJson(response.body(), JsonObject::class.java)
-                return json.get("total_count").asInt
+                val data = json.getAsJsonObject("data")
+                val user = data?.getAsJsonObject("user")
+                val contributionsCollection = user?.getAsJsonObject("contributionsCollection")
+                val contributionCalendar = contributionsCollection?.getAsJsonObject("contributionCalendar")
+                return contributionCalendar?.get("totalContributions")?.asInt
             } else {
                 logger.warn("GitHub fetchCommitsToday failed: status ${response.statusCode()}, body: ${response.body()}")
             }
         } catch (e: Exception) {
-            logger.error("Error fetching daily commits", e)
+            logger.error("Error fetching daily commits via GraphQL", e)
         }
         return null
     }

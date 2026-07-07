@@ -97,10 +97,14 @@ class CommitCounterService {
     }
 
     fun loginSuccess(token: String, username: String) {
-        PasswordSafeStorage.saveToken(token)
-        PasswordSafeStorage.saveUsername(username)
-        updateState(CommitState.LoggedIn(username, 0))
-        startScheduler()
+        try {
+            PasswordSafeStorage.saveToken(token)
+            PasswordSafeStorage.saveUsername(username)
+            updateState(CommitState.LoggedIn(username, 0))
+            startScheduler()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun startLoginFlow(project: Project) {
@@ -122,34 +126,49 @@ class CommitCounterService {
             // Show dialog
             ApplicationManager.getApplication().invokeLater {
                 var isPolling = true
-                val dialog = VerificationDialog(project, response.userCode, response.verificationUri) {
+                val dialog = VerificationDialog(
+                    project = project,
+                    userCode = response.userCode,
+                    verificationUri = response.verificationUri,
+                    onCancel = {
+                        isPolling = false
+                        updateState(CommitState.LoggedOut)
+                    }
+                )
+
+                // Stop polling when the dialog is disposed (closed)
+                com.intellij.openapi.util.Disposer.register(dialog.disposable) {
                     isPolling = false
-                    updateState(CommitState.LoggedOut)
                 }
 
                 // Start polling
                 ApplicationManager.getApplication().executeOnPooledThread {
                     val intervalMs = response.interval * 1000L
                     val expiresAt = System.currentTimeMillis() + (response.expiresIn * 1000L)
-                    while (isPolling && dialog.isShowing && System.currentTimeMillis() < expiresAt) {
+                    
+                    while (isPolling && System.currentTimeMillis() < expiresAt) {
                         try {
                             Thread.sleep(intervalMs)
                         } catch (e: InterruptedException) {
                             break
                         }
 
-                        if (!isPolling || !dialog.isShowing) break
+                        if (!isPolling) {
+                            break
+                        }
 
                         val pollResult = GitHubRepository.pollAccessToken(response.deviceCode)
                         if (pollResult != null) {
                             if (pollResult.accessToken != null) {
                                 val username = GitHubRepository.fetchUsername(pollResult.accessToken)
                                 if (username != null) {
+                                    isPolling = false
                                     ApplicationManager.getApplication().invokeLater {
                                         dialog.close(com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE)
                                     }
                                     loginSuccess(pollResult.accessToken, username)
                                 } else {
+                                    isPolling = false
                                     ApplicationManager.getApplication().invokeLater {
                                         dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE)
                                     }
@@ -160,6 +179,7 @@ class CommitCounterService {
                                 if (pollResult.error == "authorization_pending") {
                                     // Keep polling
                                 } else {
+                                    isPolling = false
                                     ApplicationManager.getApplication().invokeLater {
                                         dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE)
                                     }
@@ -170,7 +190,7 @@ class CommitCounterService {
                         }
                     }
 
-                    if (isPolling && dialog.isShowing) {
+                    if (isPolling) {
                         ApplicationManager.getApplication().invokeLater {
                             dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE)
                         }

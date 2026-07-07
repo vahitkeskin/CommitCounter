@@ -43,3 +43,8 @@ bin/
 
 # Exclude instruction files
 instructions.md
+
+# Local IDE directories
+.intellijPlatform/
+.kotlin/
+.idea/.name
