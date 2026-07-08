@@ -23,6 +23,25 @@ The status bar widget dynamically transitions between states based on authentica
 | **Authenticated** ✅ | `Commits Today: [Count]` | *Logged in as {username}. Click for options.* | Opens the Interactive Actions Menu. ⚙️ |
 | **Error / Offline** ⚠️ | `GitHub: Error` | *GitHub Error: {Error Message}. Click to retry.* | Relaunches the authentication flow. |
 
+### 📸 Screenshots
+
+Below is a visual demonstration of the CommitCounter plugin in action:
+
+#### 1. Daily Commit Count Display 📊
+The plugin integrates directly into the IDE status bar (bottom-right corner), displaying your live daily GitHub commit count at a glance:
+
+![Commit Count Display](assets/image1.png)
+
+#### 2. Contextual Actions Menu ⚙️
+Clicking the widget brings up a clean popover menu allowing you to trigger a manual sync (**Refresh**) or securely sign out (**Logout**):
+
+![Interactive Action Menu](assets/image2.png)
+
+#### 3. IDE Settings & Integration 🛠️
+You can easily find, enable, or disable CommitCounter under the **Settings/Preferences ➔ Plugins** tab, while it stays active in the status bar:
+
+![Plugin Settings & Integration](assets/image3.png)
+
 ---
 
 ## 🚀 Key Features & Advanced Capabilities
