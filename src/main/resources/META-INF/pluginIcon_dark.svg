@@ -4,17 +4,17 @@
     
     <!-- Background Contribution Grid (Top-Left) -->
     <!-- Row 1 -->
-    <rect x="8" y="8" width="3" height="3" rx="0.8" fill="#10B981" opacity="0.15"/>
-    <rect x="12" y="8" width="3" height="3" rx="0.8" fill="#10B981" opacity="0.3"/>
-    <rect x="16" y="8" width="3" height="3" rx="0.8" fill="#10B981" opacity="0.15"/>
+    <rect x="8" y="8" width="3" height="3" rx="0.8" fill="#34D399" opacity="0.15"/>
+    <rect x="12" y="8" width="3" height="3" rx="0.8" fill="#34D399" opacity="0.3"/>
+    <rect x="16" y="8" width="3" height="3" rx="0.8" fill="#34D399" opacity="0.15"/>
     <!-- Row 2 -->
-    <rect x="8" y="12" width="3" height="3" rx="0.8" fill="#10B981" opacity="0.5"/>
-    <rect x="12" y="12" width="3" height="3" rx="0.8" fill="#10B981" opacity="0.8"/>
-    <rect x="16" y="12" width="3" height="3" rx="0.8" fill="#10B981" opacity="0.3"/>
+    <rect x="8" y="12" width="3" height="3" rx="0.8" fill="#34D399" opacity="0.5"/>
+    <rect x="12" y="12" width="3" height="3" rx="0.8" fill="#34D399" opacity="0.8"/>
+    <rect x="16" y="12" width="3" height="3" rx="0.8" fill="#34D399" opacity="0.3"/>
     <!-- Row 3 -->
-    <rect x="8" y="16" width="3" height="3" rx="0.8" fill="#10B981" opacity="0.3"/>
-    <rect x="12" y="16" width="3" height="3" rx="0.8" fill="#10B981" opacity="0.6"/>
-    <rect x="16" y="16" width="3" height="3" rx="0.8" fill="#10B981" opacity="1.0"/>
+    <rect x="8" y="16" width="3" height="3" rx="0.8" fill="#34D399" opacity="0.3"/>
+    <rect x="12" y="16" width="3" height="3" rx="0.8" fill="#34D399" opacity="0.6"/>
+    <rect x="16" y="16" width="3" height="3" rx="0.8" fill="#34D399" opacity="1.0"/>
     
     <!-- Git Branch Line 2 (Side Branch) -->
     <path d="M14 23 C 18 23, 24 25, 27 30" stroke="url(#line_gradient)" stroke-width="2.5" stroke-linecap="round"/>
@@ -24,8 +24,8 @@
     
     <!-- Git Commit Nodes -->
     <!-- Node 1 (Root, Bottom-Left) -->
-    <circle cx="10" cy="30" r="4.5" fill="#38BDF8" opacity="0.25"/>
-    <circle cx="10" cy="30" r="2.2" fill="#38BDF8"/>
+    <circle cx="10" cy="30" r="4.5" fill="#60A5FA" opacity="0.25"/>
+    <circle cx="10" cy="30" r="2.2" fill="#60A5FA"/>
     
     <!-- Node 2 (Branch Split, Middle-Left) -->
     <circle cx="14" cy="23" r="4.5" fill="#818CF8" opacity="0.25"/>
@@ -42,15 +42,15 @@
     
     <defs>
         <linearGradient id="bg_gradient" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#0A0F1D"/>
-            <stop offset="1" stop-color="#1E293B"/>
+            <stop stop-color="#020617"/>
+            <stop offset="1" stop-color="#0F172A"/>
         </linearGradient>
         <linearGradient id="border_gradient" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#38BDF8" opacity="0.4"/>
+            <stop stop-color="#60A5FA" opacity="0.4"/>
             <stop offset="1" stop-color="#34D399" opacity="0.4"/>
         </linearGradient>
         <linearGradient id="line_gradient" x1="10" y1="30" x2="26" y2="12" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#38BDF8"/>
+            <stop stop-color="#60A5FA"/>
             <stop offset="0.6" stop-color="#818CF8"/>
             <stop offset="1" stop-color="#34D399"/>
         </linearGradient>
